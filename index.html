@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analisis Minat Bakat</title>
+
+<style>
+.phone-icon{
+  width:18px;
+  vertical-align:middle;
+  margin-right:6px;
+  filter: drop-shadow(0 0 4px cyan);
+}
+
+#aboutPopup .member{
+  background:rgba(0,255,255,0.1);
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid rgba(0,255,255,0.4);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{overflow:hidden;height:100vh;background:black;color:white;}
+/* Intro Background */
+#intro-bg{
+  position:fixed; inset:0;
+  background:black;
+  display:flex; align-items:center; justify-content:center;
+  z-index:-1; transition:opacity 1s;
+}
+#intro-bg::before{
+  content:"";
+  background:url('image.webp') center center/100% 100% no-repeat;
+  width:100%; height:100%; opacity:0.95;
+  position:absolute; inset:0;
+}
+#intro-bg.hidden{opacity:0;}
+/* Intro */
+#intro{
+  display:flex; align-items:center; justify-content:center;
+  height:100vh; flex-direction:column;
+  background:rgba(0,0,0,0.7);
+  text-align:center; transition:opacity 2s;
+  position:relative; overflow:hidden;
+}
+#intro h1{font-size:40px;color:cyan;margin-bottom:15px;}
+#intro p{font-size:18px;color:white;}
+.foto-ngintip{
+  position:absolute; bottom:-100%; left:50%;
+  transform:translateX(-50%) scale(0.9);
+  width:250px;
+  animation:ngintip 5s ease-in-out forwards;
+  z-index:2;
+}
+@keyframes ngintip{
+  0%{bottom:-100%;opacity:0;transform:translateX(-50%) scale(0.9);}
+  20%{bottom:5%;opacity:1;transform:translateX(-50%) scale(1);}
+  60%{bottom:5%;opacity:1;}
+  100%{bottom:-120%;opacity:0;}
+}
+.welcome-text{
+  position:absolute; top:5%; left:50%; transform:translateX(-50%);
+  font-size:50px; font-weight:bold; color:#00bfff;
+  text-shadow:0 0 10px #ffffff, 0 0 20px #ffffff, 0 0 30px #00bfff, 0 0 40px #00bfff;
+  display:flex; gap:2px; z-index:4;
+}
+.welcome-text span{
+  display:inline-block; opacity:0;
+  transform:translate(var(--x,0px), var(--y,0px)) rotate(var(--r,0deg)) scale(0.3);
+  animation:lettersFly 2s forwards;
+}
+@keyframes lettersFly{
+  0%{opacity:0;transform:translate(var(--x),var(--y)) rotate(var(--r)) scale(0.3);}
+  60%{opacity:1;transform:translate(0,0) rotate(0deg) scale(1);}
+  100%{opacity:1;transform:translate(0,0) rotate(0deg) scale(1);}
+}
+/* Main Page */
+#main{opacity:0;transition:opacity 2s;text-align:center;padding-top:80px;height:100vh;position:relative;}
+#main-bg{position:fixed;inset:0;background:url('IMG-20240918-WA0004.jpg') center/cover no-repeat;z-index:-2;transition:opacity 1s, background-image 1s;}
+#overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:-1;transition:background 0.5s;}
+h2{font-size:32px;color:cyan;text-shadow:0 0 10px cyan;}
+p.sub{font-size:16px;color:#b0ffff;margin-top:5px;}
+.input-container{margin-top:40px;}
+input,select,button{margin:10px;padding:10px 15px;border-radius:10px;border:none;font-size:16px;}
+input,select{width:230px;}
+button{
+  background:linear-gradient(90deg, cyan, #00bfff);
+  color:black;font-weight:bold;cursor:pointer;
+  transition:transform 0.3s,box-shadow 0.3s;
+}
+.result{margin-top:25px;background:rgba(0,0,0,0.5);padding:15px;border-radius:10px;opacity:0;transition:opacity 1s;color:white;}
+.result.show{opacity:1;}
+.footer-text{position:absolute;bottom:50px;width:100%;font-size:20px;color:#00ffff;text-shadow:0 0 10px cyan;font-style:italic;}
+/* Settings */
+#settingsBtn{
+  position:fixed;top:20px;left:20px;
+  background:linear-gradient(90deg,#00ffff,#00bfff);
+  color:black;font-weight:bold;padding:10px 15px;
+  border-radius:20px; cursor:pointer;z-index:1000;display:none;
+}
+#settingsMenu{
+  position:fixed;top:60px;left:20px;
+  background:rgba(0,0,0,0.85);padding:15px;border-radius:15px;
+  color:white;z-index:1000;width:220px;
+  transform: scale(0); transform-origin: top left;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+}
+#settingsMenu.show{transform: scale(1);opacity: 1;}
+#settingsMenu label {display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:14px;cursor:pointer;}
+#settingsMenu input[type="checkbox"] {width:16px;height:16px;accent-color:#00ffff;cursor:pointer;}
+#settingsMenu input[type="range"]{width:100%;}
+#settingsMenu select {width: 100%; max-width: 180px; padding: 6px 10px; font-size: 14px; border-radius: 8px;}
+input:hover, select:hover {box-shadow: 0 0 8px #00ffff;transform: scale(1.03);transition: all 0.2s ease;}
+button:hover {transform: scale(1.08);box-shadow: 0 0 20px #00ffff;transition: all 0.2s ease;}
+#projectText{margin-top:15px;text-align:center;color:#00ffff;font-weight:bold;font-size:14px;line-height:1.4;letter-spacing:0.5px;}
+/* Tentang Kami */
+#aboutBtn{
+  position:fixed; top:20px; right:20px;
+  background:linear-gradient(90deg,#00ffff,#00bfff);
+  color:black; font-weight:bold;
+  padding:10px 15px; border-radius:20px;
+  cursor:pointer; z-index:1000; display:none;
+}
+#aboutPopup{
+  position:fixed; top:50%; left:50%;
+  transform:translate(-50%,-50%) scale(0);
+  background:rgba(0,0,0,0.9); color:white;
+  width:80%; max-width:500px;
+  padding:25px; border-radius:20px;
+  box-shadow:0 0 20px cyan; z-index:2000;
+  text-align:center; transition:transform 0.4s ease;
+}
+#aboutPopup.show{transform:translate(-50%,-50%) scale(1);}
+#aboutPopup h3{color:cyan;margin-bottom:10px;}
+#aboutPopup p{font-size:15px;line-height:1.5;}
+#closeAbout{
+  margin-top:15px; background:linear-gradient(90deg,#00ffff,#00bfff);
+  color:black;font-weight:bold;border:none;
+  border-radius:10px;padding:8px 15px;cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div id="intro-bg"></div>
+<div id="intro">
+  <div class="welcome-text">WELCOME</div>
+  <img src="image3.png" class="foto-ngintip" alt="foto bertiga" />
+  <h1 id="introTitle">Project Akhir Pembelajaran</h1>
+  <p id="introNames">SELLA, SERLI, VERSY</p>
+</div>
+
+<div id="main">
+  <div id="main-bg"></div>
+  <div id="overlay"></div>
+  <h2 id="mainTitle">Analisis Minat dan Bakat Anda</h2>
+  <p class="sub" id="mainSub">Temukan bidang karier yang sesuai dengan potensi diri Anda</p>
+
+  <div class="input-container">
+    <input type="text" id="nama" placeholder="Masukkan Nama Anda" data-id="placeholder_nama">
+    <input type="text" id="skill" placeholder="Masukkan Skill Anda" data-id="placeholder_skill">
+
+    <select id="bidang" onchange="tampilkanPekerjaan()">
+
+      <option value="">-- Pilih Bidang Minat --</option>
+      <option value="teknologi">Teknologi</option>
+      <option value="seni">Seni & Desain</option>
+      <option value="bisnis">Bisnis & Manajemen</option>
+      <option value="pendidikan">Pendidikan</option>
+      <option value="kesehatan">Kesehatan</option>
+      <option value="olahraga">Olahraga</option>
+      <option value="otomotif">Otomotif</option>
+      <option value="kuliner">Kuliner</option>
+    </select>
+
+    <select id="pekerjaan" style="display:none;"></select>
+
+    <button id="btnAnalisis" onclick="analisis()">Analisis Minat Saya</button>
+  </div>
+
+  <div id="hasil" class="result"></div>
+
+  <div class="footer-text" id="footerText">
+    “wujudkan impian kita berdasarkan potensi masing-masing orang”
+  </div>
+</div>
+
+<audio id="bgMusic" loop>
+  <source src="https://cdn.pixabay.com/download/audio/2023/03/16/audio_54f3b168a1.mp3?filename=uplifting-corporate-141863.mp3" type="audio/mpeg">
+</audio>
+<audio id="clickSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_7b3a6717a2.mp3?filename=click-button-140881.mp3"></audio>
+
+<button id="settingsBtn">⚙ Pengaturan</button>
+<div id="settingsMenu">
+  <label id="musicLabel"><input type="checkbox" id="musicToggle" checked> Musik</label>
+  <label>Volume: <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.5"></label>
+  <label id="langLabel">Pilih Bahasa:
+    <select id="languageSelect">
+      <option value="id">Indonesia</option>
+      <option value="en">English</option>
+    </select>
+  </label>
+  <div id="projectText">Project by<br>Versy, Serli, Sella</div>
+</div>
+
+<button id="aboutBtn">ℹ Tentang Kami</button>
+<div id="aboutPopup">
+  <h3 id="aboutTitle">Tentang Kami</h3>
+
+  <div id="aboutDesc" style="text-align:left; line-height:1.7; font-size:16px;">
+
+    <div class="member">
+      <span class="name">1. Versy Tehusalawany</span><br>
+      <img src="https://cdn-icons-png.flaticon.com/512/724/724664.png"
+           class="phone-icon"> 081248277174
+    </div>
+
+    <br>
+
+    <div class="member">
+      <span class="name">2. Grasela Dias</span><br>
+      <img src="https://cdn-icons-png.flaticon.com/512/724/724664.png"
+           class="phone-icon"> 082210410663
+    </div>
+
+    <br>
+
+    <div class="member">
+      <span class="name">3. serlina saukoly</span><br>
+      <img src="https://cdn-icons-png.flaticon.com/512/724/724664.png"
+           class="phone-icon"> 085757604730
+    </div>
+
+  </div>
+
+  <a id="instagramLink" href="https://instagram.com/teamproject_2025" 
+     target="_blank" 
+     style="display:block;margin-top:12px;color:#00ffff;font-weight:bold;text-decoration:none;">
+
+     <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" 
+          alt="Instagram" 
+          style="width:22px;vertical-align:middle;margin-right:6px;">
+     Instagram Kami
+  </a>
+
+  <button id="closeAbout">Tutup</button>
+</div>
+
+
+<script>
+
+// AUTO SKILL DETECT //
+document.getElementById("skill").addEventListener("input", function () {
+  const s = this.value.toLowerCase();
+  const bidangSelect = document.getElementById("bidang");
+  let hasil = "";
+
+  if (s.match(/coding|program|web|developer|java|python|software|ai|data|it/))
+      hasil = "teknologi";
+  else if (s.match(/desain|design|gambar|seni|ilustrasi|grafis|editor|editing/))
+      hasil = "seni";
+  else if (s.match(/bisnis|marketing|jualan|usaha|keuangan|finance|admin/))
+      hasil = "bisnis";
+  else if (s.match(/mengajar|guru|pendidikan|edukasi|training/))
+      hasil = "pendidikan";
+  else if (s.match(/dokter|perawat|kesehatan|medis|psikologi|gizi/))
+      hasil = "kesehatan";
+  else if (s.match(/bola|sepak|basket|lari|gym|fitness|olahraga|sport/))
+      hasil = "olahraga";
+  else if (s.match(/otomotif|mobil|motor|mekanik|bengkel|engine/))
+      hasil = "otomotif";
+  else if (s.match(/masak|chef|koki|kuliner|baking|makanan/))
+      hasil = "kuliner";
+
+  bidangSelect.value = hasil;
+
+  if (hasil !== "") {
+      tampilkanPekerjaan();
+  }
+});
+
+
+//  DATA BIDANG //
+
+const dataBidang = {
+  teknologi:{ bg:"url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1280&q=80')",
+    pekerjaan:{
+      "Programmer":"Rp 8-25jt","Data Analyst":"Rp 10-30jt","Web Developer":"Rp 7-20jt","AI Engineer":"Rp 15-40jt"
+    }},
+  seni:{ bg:"url('https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=1280&q=80')",
+    pekerjaan:{
+      "Desainer Grafis":"Rp 5-15jt","Animator":"Rp 7-20jt","Seniman Digital":"Rp 6-18jt","Editor Foto/Video":"Rp 5-12jt"
+    }},
+  bisnis:{ bg:"url('https://images.unsplash.com/photo-1591696205602-2f950c417cb9?auto=format&fit=crop&w=1280&q=80')",
+    pekerjaan:{
+      "Manajer Pemasaran":"Rp 12-35jt","Pengusaha":"Tidak terbatas","Analis Keuangan":"Rp 9-22jt","Konsultan Bisnis":"Rp 10-25jt"
+    }},
+  pendidikan:{ bg:"url('https://images.unsplash.com/photo-1588072432836-e10032774350?auto=format&fit=crop&w=1280&q=80')",
+    pekerjaan:{
+      "Guru":"Rp 4-10jt","Dosen":"Rp 6-20jt","Tutor Privat":"Rp 3-10jt","Konselor Pendidikan":"Rp 5-15jt"
+    }},
+  kesehatan:{ bg:"url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1280&q=80')",
+    pekerjaan:{
+      "Dokter":"Rp 15-60jt","Perawat":"Rp 5-12jt","Psikolog":"Rp 8-25jt","Ahli Gizi":"Rp 6-15jt"
+    }},
+  olahraga:{ bg:"url('https://images.unsplash.com/photo-1517649763962-0c623066013b?auto=format&fit=crop&w=1280&q=80')",
+    pekerjaan:{
+      "Atlet":"Rp 5-100jt","Pelatih":"Rp 5-20jt","Instruktur Gym":"Rp 4-12jt","Fisioterapis Olahraga":"Rp 7-20jt"
+    }},
+  otomotif:{ bg:"url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1280&q=80')",
+    pekerjaan:{
+      "Mekanik":"Rp 4-12jt","Teknisi Mesin":"Rp 5-15jt","Spesialis Body Repair":"Rp 4-10jt","Perakit Motor/Mobil":"Rp 5-14jt"
+    }},
+  kuliner:{ bg:"url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1280&q=80')",
+    pekerjaan:{
+      "Chef":"Rp 5-20jt","Baker":"Rp 4-12jt","Food Stylist":"Rp 5-15jt","Pengusaha Kuliner":"Tidak terbatas"
+    }}
+};
+
+
+// TAMPILKAN PEKERJAAN //
+function tampilkanPekerjaan() {
+  
+  const bidang = document.getElementById("bidang").value;
+  const pekerjaanSelect = document.getElementById("pekerjaan");
+  const bg = document.getElementById("main-bg");
+
+  if (!bidang) {
+    pekerjaanSelect.style.display = "none";
+    pekerjaanSelect.innerHTML = "";
+    return;
+  }
+
+  bg.style.opacity = 0;
+  setTimeout(() => {
+    bg.style.backgroundImage = dataBidang[bidang].bg;
+    bg.style.opacity = 1;
+  }, 300);
+
+  pekerjaanSelect.innerHTML = `<option value="">-- Pilih Pekerjaan --</option>`;
+  for (const p in dataBidang[bidang].pekerjaan) {
+    let opt = document.createElement("option");
+    opt.value = p;
+    opt.textContent = p;
+    pekerjaanSelect.appendChild(opt);
+  }
+  pekerjaanSelect.style.display = "inline-block";
+document.getElementById("pekerjaan").style.display = "none";
+
+}
+
+//  DETEKSI SKILL PAKE BAHASA SEHARI-HARI //
+function getBidangBySkill(skill) {
+  skill = skill.toLowerCase();
+
+  const simpleMap = {
+    teknologi: ["ngoding","coding","buat aplikasi","program","komputer","website","edit aplikasi","data","it","software"],
+    seni: ["desain","design","gambar","lukis","mengedit","foto","video","animasi","ilustrasi","logo","editor"],
+    bisnis: ["jualan","dagang","usaha","bisnis","marketing","promosi","keuangan","admin","kasir","manager"],
+    pendidikan: ["ngajar","mengajar","guru","bimbing","les","tutor","edukasi","sekolah"],
+    kesehatan: ["rawat","perawat","dokter","medis","gizi","psikologi","obat","kesehatan"],
+    olahraga: ["sepak bola","basket","lari","gym","fitnes","workout","renang","olahraga","badminton"],
+    otomotif: ["montir","mekanik","motor","mobil","bengkel","mesin"],
+    kuliner: ["masak","chef","koki","kue","baking","makanan","resto","kuliner"]
+  };
+
+  for (const bidang in simpleMap) {
+    if (simpleMap[bidang].some(word => skill.includes(word))) {
+      return bidang;
+    }
+  }
+
+  return "";
+}
+
+//  UPDATE INPUT AGAR OTOMATIS PILIH BIDANG //
+document.getElementById("skill").addEventListener("input", function () {
+  const hasil = getBidangBySkill(this.value);
+  const bidangSelect = document.getElementById("bidang");
+
+  bidangSelect.value = hasil;
+
+  if (hasil !== "") {
+    tampilkanPekerjaan();
+  }
+});
+
+
+// ANALISIS HASIL / UPDATE BAHASA //
+function analisis() {
+  document.getElementById("clickSound").play();
+
+  const nama = document.getElementById("nama").value.trim();
+  const skill = document.getElementById("skill").value.toLowerCase().trim();
+  const bidang = document.getElementById("bidang").value;
+  const hasil = document.getElementById("hasil");
+  const lang = document.getElementById("languageSelect").value;
+
+  if (!nama || !skill || !bidang) {
+    hasil.innerHTML = `<p style='color:red;'>${langData[lang].error_fill}</p>`;
+    hasil.classList.add("show");
+    return;
+  }
+
+  // ambil semua pekerjaan dari bidang terpilih //
+  const listPekerjaan = dataBidang[bidang].pekerjaan;
+
+ // hitung skor sederhana //
+let rekomendasi = Object.keys(listPekerjaan).map(job => {
+  let score = 0;
+  skill.split(" ").forEach(k => {
+    if (job.toLowerCase().includes(k)) score++;
+  });
+
+  return {
+    job,
+    gaji: listPekerjaan[job],
+    score
+  };
+});
+
+// urutkan berdasarkan kecocokan //
+rekomendasi.sort((a, b) => b.score - a.score);
+
+// buat persentase unik otomatis //
+const base = 90; // tertinggi //
+const decrease = 100 / rekomendasi.length;
+
+rekomendasi = rekomendasi.map((item, i) => ({
+  ...item,
+  percent: Math.max(10, Math.round(base - i * decrease))
+}));
+
+
+
+  // urutkan dari persentase terbesar//
+  rekomendasi.sort((a, b) => b.percent - a.percent);
+
+  // ambil 3 teratas //
+  const top3 = rekomendasi.slice(0, 3);
+  const total = top3.reduce((sum, item) => sum + item.percent, 0);
+
+
+  hasil.innerHTML = `
+    <p>${langData[lang].greeting} <b>${nama}</b> 👋</p>
+    <p>${langData[lang].skillLabel}: <b>${skill}</b></p>
+    <p>${langData[lang].fieldLabel}: <b>${bidang}</b></p>
+    <br>
+    <p><b>Rekomendasi Pekerjaan Teratas:</b></p>
+    <ul style="list-style:none;padding:0;">
+      ${top3
+        .map(
+          r => `<li> <b>${r.job}</b> — ${r.percent}% • Gaji: <b>${r.gaji}</b></li>`
+        )
+        .join("")}
+    </ul>
+  `;
+
+  hasil.classList.add("show");
+}
+
+
+
+// MULTI LANGUAGE DATA UPDATE //
+
+const langData = {
+  
+  id: {
+    introTitle: "Project Akhir Pembelajaran",
+    introNames: "SELLA, SERLI, VERSY",
+    mainTitle: "Analisis Minat dan Bakat Anda",
+    mainSub: "Temukan bidang karier yang sesuai dengan potensi diri Anda",
+    placeholder_nama: "Masukkan Nama Anda",
+    placeholder_skill: "Masukkan Skill Anda",
+    btnAnalisis: "Analisis Minat Saya",
+    aboutTitle: "Tentang Kami",
+    aboutDescHTML: `
+      <div class="member">
+        <span class="name">1. Serly Soukoly</span><br>
+        <img src="https://cdn-icons-png.flaticon.com/512/724/724664.png" class="phone-icon"> 085757604730
+      </div><br>
+      <div class="member">
+        <span class="name">2. Grasela Dias</span><br>
+        <img src="https://cdn-icons-png.flaticon.com/512/724/724664.png" class="phone-icon"> 082210410663
+      </div><br>
+      <div class="member">
+        <span class="name">3. Versy Tehusalawany</span><br>
+        <img src="https://cdn-icons-png.flaticon.com/512/724/724664.png" class="phone-icon"> 081248277174
+      </div>
+    `,
+    footerText: "“wujudkan impian kita berdasarkan potensi masing-masing orang.”",
+    closeAbout: "Tutup",
+    settingsBtn: "⚙ Pengaturan",
+    musicLabel: "Musik",
+    langLabel: "Pilih Bahasa",
+    greeting: "Halo",
+    skillLabel: "Skill Anda",
+    fieldLabel: "Bidang yang dipilih",
+    jobLabel: "Pekerjaan",
+    salaryLabel: "Perkiraan pendapatan",
+    error_fill: "Isi nama, skill & bidang!",
+    error_job: "Pilih pekerjaan terlebih dahulu!",
+    instagramText: "Instagram Kami",
+  },
+  en: {
+    introTitle: "Final Learning Project",
+    introNames: "SELLA, SERLI, VERSY",
+    mainTitle: "Your Interest and Talent Analysis",
+    mainSub: "Discover the career field that suits your potential",
+    placeholder_nama: "Enter Your Name",
+    placeholder_skill: "Enter Your Skill",
+    btnAnalisis: "Analyze My Interests",
+    aboutTitle: "About Us",
+    aboutDescHTML: `
+      <div class="member">
+        <span class="name">1. Serlina Saukoly</span><br>
+        <img src="https://cdn-icons-png.flaticon.com/512/724/724664.png" class="phone-icon"> 085757604730
+      </div><br>
+      <div class="member">
+        <span class="name">2. Grasela Dias</span><br>
+        <img src="https://cdn-icons-png.flaticon.com/512/724/724664.png" class="phone-icon"> 082210410663
+      </div><br>
+      <div class="member">
+        <span class="name">3. Versy Tehusalawany</span><br>
+        <img src="https://cdn-icons-png.flaticon.com/512/724/724664.png" class="phone-icon"> 081248277174
+      </div>
+    `,
+    footerText: "“make our dreams come true based on each person's potential.”",
+    closeAbout: "Close",
+    settingsBtn: "⚙ Settings",
+    musicLabel: "Music",
+    langLabel: "Language",
+    greeting: "Hello",
+    skillLabel: "Your Skill",
+    fieldLabel: "Selected Field",
+    jobLabel: "Job",
+    salaryLabel: "Estimated income",
+    error_fill: "Please fill name, skill & field!",
+    error_job: "Please select a job first!",
+    introTitle: "Final Learning Project",
+    instagramText: "Our Instagram",
+  }
+};
+
+
+document.getElementById("languageSelect").addEventListener("change", function () {
+  const lang = this.value;
+
+  document.getElementById("introTitle").textContent = langData[lang].introTitle;
+  document.getElementById("introNames").textContent = langData[lang].introNames;
+  document.getElementById("mainTitle").textContent = langData[lang].mainTitle;
+  document.getElementById("mainSub").textContent = langData[lang].mainSub;
+  document.getElementById("btnAnalisis").textContent = langData[lang].btnAnalisis;
+  document.getElementById("aboutTitle").textContent = langData[lang].aboutTitle;
+  document.getElementById("aboutDesc").innerHTML = langData[lang].aboutDescHTML || document.getElementById("aboutDesc").innerHTML;
+
+  document.getElementById("footerText").textContent = langData[lang].footerText;
+
+  document.getElementById("nama").setAttribute("placeholder", langData[lang].placeholder_nama);
+  document.getElementById("skill").setAttribute("placeholder", langData[lang].placeholder_skill);
+
+  document.getElementById("aboutBtn").textContent =
+    lang === "id" ? "ℹ Tentang Kami" : "ℹ About Us";
+
+  document.getElementById("closeAbout").textContent = langData[lang].closeAbout;
+  document.getElementById("settingsBtn").textContent = langData[lang].settingsBtn;
+
+  document.getElementById("musicLabel").lastChild.textContent =
+    " " + langData[lang].musicLabel;
+
+  document.getElementById("langLabel").childNodes[0].textContent =
+    langData[lang].langLabel + ":";
+});
+
+const jobLang = {
+  teknologi: {
+    id: ["Programmer","Data Analyst","Web Developer","AI Engineer"],
+    en: ["Programmer","Data Analyst","Web Developer","AI Engineer"]
+  },
+  seni: {
+    id: ["Desainer Grafis","Animator","Seniman Digital","Editor Foto/Video"],
+    en: ["Graphic Designer","Animator","Digital Artist","Photo/Video Editor"]
+  },
+  bisnis: {
+    id: ["Manajer Pemasaran","Pengusaha","Analis Keuangan","Konsultan Bisnis"],
+    en: ["Marketing Manager","Entrepreneur","Financial Analyst","Business Consultant"]
+  },
+  pendidikan: {
+    id: ["Guru","Dosen","Tutor Privat","Konselor Pendidikan"],
+    en: ["Teacher","Lecturer","Private Tutor","Education Counselor"]
+  },
+  kesehatan: {
+    id: ["Perawat","Dokter Umum","Ahli Gizi","Fisioterapis"],
+    en: ["Nurse","General Practitioner","Nutritionist","Physiotherapist"]
+  },
+  olahraga: {
+    id: ["Pelatih","Atlet","Instruktur Fitness","Wasit"],
+    en: ["Coach","Athlete","Fitness Instructor","Referee"]
+  },
+  otomotif: {
+    id: ["Mekanik","Teknisi Body & Cat","Perakit Kendaraan","Penguji Kendaraan"],
+    en: ["Mechanic","Body & Paint Technician","Vehicle Assembler","Vehicle Inspector"]
+  },
+  kuliner: {
+    id: ["Koki","Baker","Barista","Food Stylist"],
+    en: ["Chef","Baker","Barista","Food Stylist"]
+  }
+};
+
+
+// POPUP ABOUT //
+
+document.getElementById("aboutBtn").addEventListener("click", () => {
+  document.getElementById("aboutPopup").classList.add("show");
+});
+
+document.getElementById("closeAbout").addEventListener("click", () => {
+  document.getElementById("aboutPopup").classList.remove("show");
+});
+
+
+// ANIMASI & EVENTS //
+
+const welcomeTextEl = document.querySelector('.welcome-text');
+const text = welcomeTextEl.textContent;
+welcomeTextEl.textContent = '';
+for (let char of text) {
+  const span = document.createElement('span');
+  span.textContent = char;
+  span.style.setProperty('--x', `${(Math.random() - 0.5) * 200}px`);
+  span.style.setProperty('--y', `${(Math.random() - 0.5) * 200}px`);
+  span.style.setProperty('--r', `${(Math.random() - 0.5) * 720}deg`);
+  span.style.animationDelay = `${Math.random() * 1.5}s`;
+  welcomeTextEl.appendChild(span);
+}
+
+setTimeout(() => {
+  document.getElementById('intro').style.opacity = 0;
+  document.getElementById('intro-bg').classList.add('hidden');
+  setTimeout(() => {
+    document.getElementById('intro').style.display = 'none';
+    document.getElementById('main').style.opacity = 1;
+    settingsBtn.style.display = 'block';
+    aboutBtn.style.display = 'block';
+  }, 2000);
+}, 3500);
+
+const bgMusic = document.getElementById('bgMusic');
+bgMusic.volume = 0.5;
+document.addEventListener('click', () => { bgMusic.muted = false; });
+
+settingsBtn.addEventListener('click', () => { settingsMenu.classList.toggle('show'); });
+musicToggle.addEventListener('change', () => { bgMusic.muted = !musicToggle.checked; });
+volumeSlider.addEventListener('input', () => { bgMusic.volume = volumeSlider.value; });
+
+const languageSelect = document.getElementById("languageSelect");
+
+languageSelect.addEventListener("change", function () {
+  const lang = this.value;
+//update bahsa pilih bidang //
+  const bidangText = {
+  id: [
+    "-- Pilih Bidang Minat --",
+    "Teknologi",
+    "Seni & Desain",
+    "Bisnis & Manajemen",
+    "Pendidikan",
+    "Kesehatan",
+    "Olahraga",
+    "Otomotif",
+    "Kuliner"
+  ],
+  en: [
+    "-- Select Interest Field --",
+    "Technology",
+    "Art & Design",
+    "Business & Management",
+    "Education",
+    "Health",
+    "Sports",
+    "Automotive",
+    "Culinary"
+  ]
+};
+
+  // UPDATE PILIHAN BIDANG //
+  const bidangSelect = document.getElementById("bidang");
+  const opts = bidangSelect.options;
+
+  for (let i = 0; i < opts.length; i++) {
+    opts[i].textContent = bidangText[lang][i];
+  }
+});
+
+// UPDATE TEKS INSTAGRAM SESUAI BAHASA //
+function updateInstagramText() {
+  const lang = languageSelect.value;
+  const instaLink = document.getElementById("instagramLink");
+  instaLink.innerHTML = `
+    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" 
+         alt="Instagram" 
+         style="width:22px;vertical-align:middle;margin-right:6px;">
+    ${langData[lang].instagramText}
+  `;
+}
+
+// Jalankan saat bahasa berubah //
+languageSelect.addEventListener("change", updateInstagramText);
+
+// Jalankan juga sekali saat halaman load untuk default bahasa //
+updateInstagramText();
+
+
+</script>
+</body>
+</html>
